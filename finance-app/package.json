@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "date-fns": "^4.1.0",
+    "exceljs": "^4.4.0",
     "lucide-react": "^1.16.0",
     "papaparse": "^5.5.3",
+    "pdfjs-dist": "^6.0.227",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "recharts": "^3.8.1"

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { Upload, FileText, AlertCircle, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react'
 import type { Transaction } from '../../types'
-import { parseCSV } from '../../utils/csvParser'
+import { parseFile, isSupportedFile, getExtension } from '../../utils/fileParser'
 
 interface UploadViewProps {
   onUpload: (transactions: Transaction[]) => void
@@ -50,8 +50,8 @@ export function UploadView({ onUpload }: UploadViewProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   async function processFile(file: File) {
-    if (!file.name.endsWith('.csv')) {
-      setError('Please upload a CSV file. Most banks let you export transactions as CSV.')
+    if (!isSupportedFile(file.name)) {
+      setError('Unsupported file type. Please upload a CSV, Excel (.xlsx/.xls), or PDF statement.')
       return
     }
 
@@ -60,8 +60,10 @@ export function UploadView({ onUpload }: UploadViewProps) {
     setSuccess(null)
 
     try {
-      const transactions = await parseCSV(file)
-      setSuccess(`Successfully imported ${transactions.length} transactions.`)
+      const transactions = await parseFile(file)
+      const ext = getExtension(file.name)
+      const note = ext === 'pdf' ? ' Review the results, as PDF parsing accuracy varies by bank.' : ''
+      setSuccess(`Successfully imported ${transactions.length} transactions.${note}`)
       setTimeout(() => onUpload(transactions), 800)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to parse file.')
@@ -84,7 +86,7 @@ export function UploadView({ onUpload }: UploadViewProps) {
         </div>
         <h1 className="text-2xl font-semibold text-slate-800 mb-2">Upload Bank Statement</h1>
         <p className="text-slate-500 text-sm leading-relaxed">
-          Export your transactions as CSV from your bank's online portal,<br />
+          Export your transactions from your bank's online portal as CSV, Excel, or PDF,<br />
           then drag and drop or click to upload below.
         </p>
       </div>
@@ -108,7 +110,7 @@ export function UploadView({ onUpload }: UploadViewProps) {
         <input
           ref={inputRef}
           type="file"
-          accept=".csv"
+          accept=".csv,.xlsx,.xls,.pdf"
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0]
@@ -118,9 +120,9 @@ export function UploadView({ onUpload }: UploadViewProps) {
         />
         <FileText size={36} className="mx-auto text-slate-300 mb-3" />
         <p className="text-slate-600 font-medium mb-1">
-          {isDragging ? 'Drop your CSV here' : 'Drag & drop your CSV file'}
+          {isDragging ? 'Drop your file here' : 'Drag & drop your statement'}
         </p>
-        <p className="text-slate-400 text-sm">or click to browse</p>
+        <p className="text-slate-400 text-sm">CSV, Excel (.xlsx, .xls) or PDF — or click to browse</p>
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-2xl">
             <div className="flex flex-col items-center gap-2">
@@ -170,17 +172,25 @@ export function UploadView({ onUpload }: UploadViewProps) {
         {showGuide && (
           <div className="px-5 pb-5 space-y-3 border-t border-slate-100 pt-4">
             {[
-              { bank: 'FNB / RMB', steps: 'Online Banking → My Bank Accounts → Account → Transactions → Export → CSV' },
-              { bank: 'Standard Bank', steps: 'Online Banking → Account → View Statements → Download CSV' },
-              { bank: 'ABSA', steps: 'Online Banking → Accounts → Transaction History → Export → CSV' },
-              { bank: 'Nedbank', steps: 'Online Banking → Accounts → Transaction History → Export to CSV' },
-              { bank: 'Capitec', steps: 'App → Transactions → Download Statement → CSV format' },
+              { bank: 'FNB / RMB', steps: 'Online Banking → My Bank Accounts → Account → Transactions → Export → CSV, Excel or PDF' },
+              { bank: 'Standard Bank', steps: 'Online Banking → Account → View Statements → Download as PDF, CSV or Excel' },
+              { bank: 'ABSA', steps: 'Online Banking → Accounts → Transaction History → Export → CSV or PDF' },
+              { bank: 'Nedbank', steps: 'Online Banking → Accounts → Transaction History → Export to CSV, Excel or PDF statement' },
+              { bank: 'Capitec', steps: 'App → Transactions → Download Statement → PDF or CSV' },
             ].map(({ bank, steps }) => (
               <div key={bank}>
                 <span className="font-medium text-slate-700 text-xs">{bank}</span>
                 <p className="text-slate-400 text-xs mt-0.5">{steps}</p>
               </div>
             ))}
+            <div className="pt-2 mt-2 border-t border-slate-100">
+              <p className="text-slate-400 text-xs leading-relaxed">
+                <strong className="text-slate-500">Tip:</strong> CSV and Excel give the most accurate
+                results since they have clearly labeled columns. PDF statements are supported too —
+                the app reads the table layout automatically — but always double-check amounts and
+                dates afterwards, since formats vary between banks.
+              </p>
+            </div>
           </div>
         )}
       </div>
