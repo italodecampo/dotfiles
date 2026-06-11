@@ -5,6 +5,8 @@ import {
   Tags,
   Upload,
   TrendingUp,
+  CreditCard,
+  Receipt,
 } from 'lucide-react'
 import type { ViewType } from '../../types'
 
@@ -13,6 +15,8 @@ const NAV_ITEMS: { id: ViewType; label: string; icon: React.ReactNode }[] = [
   { id: 'transactions', label: 'Transactions', icon: <ArrowLeftRight size={18} /> },
   { id: 'subscriptions', label: 'Subscriptions', icon: <RefreshCcw size={18} /> },
   { id: 'categories', label: 'Categories', icon: <Tags size={18} /> },
+  { id: 'accounts', label: 'Accounts', icon: <CreditCard size={18} /> },
+  { id: 'taxes', label: 'Taxes', icon: <Receipt size={18} /> },
 ]
 
 interface SidebarProps {
@@ -37,7 +41,7 @@ export function Sidebar({ view, onNavigate, hasData }: SidebarProps) {
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         {NAV_ITEMS.map((item) => {
           const isActive = view === item.id
-          const isDisabled = !hasData && item.id !== 'upload'
+          const isDisabled = !hasData && item.id !== 'upload' && item.id !== 'taxes'
           return (
             <button
               key={item.id}

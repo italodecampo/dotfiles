@@ -25,6 +25,13 @@ export interface Transaction {
   isSubscription: boolean
 }
 
+export interface Account {
+  id: string
+  name: string
+  transactions: Transaction[]
+  createdAt: string
+}
+
 export interface CategoryStats {
   category: Category
   total: number
@@ -49,12 +56,28 @@ export interface FinanceSummary {
   dateRange: { from: Date; to: Date } | null
 }
 
-export type ViewType = 'upload' | 'dashboard' | 'transactions' | 'subscriptions' | 'categories'
+export type DateFilter =
+  | { type: 'all' }
+  | { type: 'year'; year: number }
+  | { type: 'month'; year: number; month: number }
 
-export interface AppState {
-  transactions: Transaction[]
-  view: ViewType
-  filterMonth: string | null
-  filterCategory: Category | null
-  searchQuery: string
+export type TaxDocumentCategory =
+  | 'Income Statement'
+  | 'Receipt'
+  | 'Donation'
+  | 'Medical'
+  | 'Investment'
+  | 'Business Expense'
+  | 'Other'
+
+export interface TaxDocument {
+  id: string
+  name: string
+  category: TaxDocumentCategory
+  taxYear: number
+  uploadedAt: string
+  fileType: string
+  fileSize: number
 }
+
+export type ViewType = 'upload' | 'dashboard' | 'transactions' | 'subscriptions' | 'categories' | 'accounts' | 'taxes'
