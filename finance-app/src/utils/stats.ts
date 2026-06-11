@@ -92,9 +92,9 @@ export function computeMonthlyStats(transactions: Transaction[]): MonthlyStats[]
 
 export function formatCurrency(amount: number, absolute = false): string {
   const value = absolute ? Math.abs(amount) : amount
-  return new Intl.NumberFormat('en-ZA', {
+  return new Intl.NumberFormat('en-IE', {
     style: 'currency',
-    currency: 'ZAR',
+    currency: 'EUR',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value)

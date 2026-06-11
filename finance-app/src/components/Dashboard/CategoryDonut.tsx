@@ -1,5 +1,6 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import type { CategoryStats } from '../../types'
+import { formatCurrency } from '../../utils/stats'
 
 interface CategoryDonutProps {
   data: CategoryStats[]
@@ -12,7 +13,7 @@ const CustomTooltip = ({ active, payload }: any) => {
     <div className="bg-white border border-slate-100 rounded-xl shadow-lg p-3 text-xs">
       <p className="font-semibold text-slate-700">{d.category}</p>
       <p className="text-slate-500 mt-0.5">
-        R {d.total.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        {formatCurrency(d.total)}
       </p>
       <p className="text-slate-400">{d.percentage.toFixed(1)}% of expenses</p>
     </div>

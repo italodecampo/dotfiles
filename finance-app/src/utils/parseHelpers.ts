@@ -68,13 +68,42 @@ export function detectColumns(headers: string[]): ColumnMap {
   return map
 }
 
-/** Builds transactions from a 2D array of cell values, where the first row is the header row. */
+const HEADER_SCAN_LIMIT = 15
+
+/**
+ * Bank exports often include title/metadata rows (account name, statement
+ * period, etc.) before the actual table header. Scan the first few rows to
+ * find the one that looks like a header (has both a date-like and a
+ * description-like column).
+ */
+function findHeaderRowIndex(rows: (string | number | Date)[][]): number {
+  const limit = Math.min(rows.length, HEADER_SCAN_LIMIT)
+  for (let i = 0; i < limit; i++) {
+    const headers = rows[i].map((h) => String(h ?? '').trim())
+    const colMap = detectColumns(headers)
+    if (colMap.date !== undefined && colMap.description !== undefined) {
+      return i
+    }
+  }
+  return -1
+}
+
+/** Builds transactions from a 2D array of cell values, where one of the first rows is the header row. */
 export function buildTransactionsFromRows(rows: (string | number | Date)[][]): Transaction[] {
   if (rows.length < 2) {
     throw new Error('File appears empty or has no data rows.')
   }
 
-  const headers = rows[0].map((h) => String(h ?? '').trim())
+  const headerIndex = findHeaderRowIndex(rows)
+
+  if (headerIndex === -1) {
+    throw new Error(
+      'Could not detect required columns (Date, Description). ' +
+        'Please ensure your file has Date and Description columns.'
+    )
+  }
+
+  const headers = rows[headerIndex].map((h) => String(h ?? '').trim())
   const colMap = detectColumns(headers)
 
   if (colMap.date === undefined || colMap.description === undefined) {
@@ -86,7 +115,7 @@ export function buildTransactionsFromRows(rows: (string | number | Date)[][]): T
 
   const transactions: Transaction[] = []
 
-  for (let i = 1; i < rows.length; i++) {
+  for (let i = headerIndex + 1; i < rows.length; i++) {
     const row = rows[i]
     const rawDate = row[colMap.date]
     const description = String(row[colMap.description] ?? '').trim()
@@ -133,15 +162,19 @@ export function finalizeTransactions(transactions: Transaction[]): Transaction[]
     throw new Error('No valid transactions found. Please check the file format.')
   }
 
-  const subscriptionIds = detectSubscriptions(transactions)
-  const withSubs = transactions.map((t) => ({
-    ...t,
-    isSubscription: subscriptionIds.has(t.id),
-    category:
-      subscriptionIds.has(t.id) && t.category === 'Other'
-        ? ('Subscriptions' as const)
-        : t.category,
-  }))
+  // Recognized subscription services (Netflix, Claude, etc.) are always flagged,
+  // even on a single occurrence. Everything else needs a heuristically-detected
+  // recurring pattern (multiple months at a consistent amount/day).
+  const recurringIds = detectSubscriptions(transactions)
+  const withSubs = transactions.map((t) => {
+    const isKnownSubscription = t.category === 'Subscriptions'
+    const isRecurring = recurringIds.has(t.id)
+    return {
+      ...t,
+      isSubscription: isKnownSubscription || isRecurring,
+      category: isRecurring && t.category === 'Other' ? ('Subscriptions' as const) : t.category,
+    }
+  })
 
   return withSubs.sort((a, b) => b.date.getTime() - a.date.getTime())
 }

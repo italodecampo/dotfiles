@@ -23,9 +23,9 @@ export function DashboardView({ transactions, onNavigate }: DashboardViewProps) 
         <h1 className="text-xl font-semibold text-slate-800">Dashboard</h1>
         {summary.dateRange && (
           <p className="text-sm text-slate-400 mt-0.5">
-            {summary.dateRange.from.toLocaleDateString('en-ZA', { month: 'long', year: 'numeric' })}
+            {summary.dateRange.from.toLocaleDateString('en-IE', { month: 'long', year: 'numeric' })}
             {' — '}
-            {summary.dateRange.to.toLocaleDateString('en-ZA', { month: 'long', year: 'numeric' })}
+            {summary.dateRange.to.toLocaleDateString('en-IE', { month: 'long', year: 'numeric' })}
             {' · '}
             {summary.transactionCount} transactions
           </p>

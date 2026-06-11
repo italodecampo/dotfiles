@@ -14,11 +14,14 @@ const CATEGORY_RULES: { category: Category; type: TransactionType; keywords: str
     category: 'Subscriptions',
     type: 'expense',
     keywords: [
-      'netflix', 'spotify', 'apple music', 'youtube premium', 'hulu', 'disney+',
-      'amazon prime', 'prime video', 'showmax', 'dstv', 'hbo', 'paramount+',
+      'netflix', 'spotify', 'apple music', 'youtube premium', 'youtube tv',
+      'hulu', 'disney+', 'disney plus', 'amazon prime', 'prime video',
+      'showmax', 'dstv', 'hbo', 'paramount+', 'twitch', 'audible', 'patreon',
       'adobe', 'microsoft 365', 'office 365', 'dropbox', 'icloud', 'google one',
-      'github', 'notion', 'figma', 'canva', 'slack', 'zoom', 'chatgpt',
-      'claude', 'openai', 'lastpass', '1password', 'nordvpn', 'expressvpn',
+      'google storage', 'github', 'notion', 'figma', 'canva', 'slack', 'zoom',
+      'linear app', 'vercel', 'cursor', 'midjourney', 'perplexity',
+      'chatgpt', 'claude', 'anthropic', 'openai', 'tradingview', 'trading view',
+      'lastpass', '1password', 'nordvpn', 'expressvpn',
     ],
   },
   {
@@ -81,6 +84,9 @@ const CATEGORY_RULES: { category: Category; type: TransactionType; keywords: str
       'uniqlo', 'woolworths clothing', 'cotton on', 'sportscene', 'nike',
       'adidas', 'clothing', 'fashion', 'apparel', 'shoes', 'retail',
       'department store', 'mall', 'boutique', 'store',
+      'tobacco', 'cigarette', 'cigarettes', 'cigar', 'vape', 'vaping',
+      'smoke shop', 'liquor', 'bottle store', 'off licence', 'off-licence',
+      'newsagent', 'kiosk', 'convenience',
     ],
   },
   {

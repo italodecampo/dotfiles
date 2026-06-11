@@ -9,6 +9,7 @@ import {
   Legend,
 } from 'recharts'
 import type { MonthlyStats } from '../../types'
+import { formatCurrency } from '../../utils/stats'
 
 interface MonthlyChartProps {
   data: MonthlyStats[]
@@ -24,7 +25,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.fill }} />
           <span className="text-slate-500">{p.name}:</span>
           <span className="font-medium text-slate-700">
-            R {p.value.toLocaleString('en-ZA', { minimumFractionDigits: 0 })}
+            {formatCurrency(p.value)}
           </span>
         </div>
       ))}
@@ -49,7 +50,7 @@ export function MonthlyChart({ data }: MonthlyChartProps) {
             tick={{ fontSize: 11, fill: '#94a3b8' }}
             axisLine={false}
             tickLine={false}
-            tickFormatter={(v) => `R${(v / 1000).toFixed(0)}k`}
+            tickFormatter={(v) => `€${(v / 1000).toFixed(0)}k`}
             width={45}
           />
           <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f8fafc' }} />
