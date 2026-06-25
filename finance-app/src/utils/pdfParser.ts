@@ -65,7 +65,10 @@ function findDate(line: string): DateMatch | null {
   return null
 }
 
-const AMOUNT_REGEX = /\(?-?\s?\b\d{1,3}(?:[,\s]\d{3})*\.\d{2}\)?\s?(?:CR|DR)?-?/gi
+// Accepts both US/UK (1,234.56) and European (1.234,56) formatting — the final
+// separator is always the decimal point since it's followed by exactly 2 digits,
+// while any earlier separators group thousands, regardless of which character is used.
+const AMOUNT_REGEX = /\(?-?\s?\b\d{1,3}(?:[.,\s]\d{3})*[.,]\d{2}\)?\s?(?:CR|DR)?-?/gi
 
 interface AmountMatch {
   value: number
@@ -74,14 +77,21 @@ interface AmountMatch {
   explicitSign: 'positive' | 'negative' | null
 }
 
+function parseAmount(raw: string): number | null {
+  const digits = raw.match(/\d{1,3}(?:[.,\s]\d{3})*[.,]\d{2}/)
+  if (!digits) return null
+  const parts = digits[0].match(/^(.*)[.,](\d{2})$/)
+  if (!parts) return null
+  const value = parseFloat(`${parts[1].replace(/[.,\s]/g, '')}.${parts[2]}`)
+  return isNaN(value) ? null : value
+}
+
 function findAmounts(line: string): AmountMatch[] {
   const matches: AmountMatch[] = []
   for (const m of line.matchAll(AMOUNT_REGEX)) {
     const raw = m[0]
-    const digits = raw.match(/\d{1,3}(?:[,\s]\d{3})*\.\d{2}/)
-    if (!digits) continue
-    const value = parseFloat(digits[0].replace(/[,\s]/g, ''))
-    if (isNaN(value)) continue
+    const value = parseAmount(raw)
+    if (value === null) continue
 
     let explicitSign: 'positive' | 'negative' | null = null
     if (/\(.*\)/.test(raw) || /^-/.test(raw.trim()) || /-\s*$/.test(raw) || /\bDR\b/i.test(raw)) {
@@ -151,6 +161,10 @@ export async function parsePDF(file: File): Promise<Transaction[]> {
     if (!dateMatch) continue
 
     const remainder = line.slice(0, dateMatch.index) + line.slice(dateMatch.index + dateMatch.match.length)
+    // Lines with a second date (e.g. "Statement period: 01.01.2024 to 31.12.2024") are
+    // metadata, not a transaction row — real rows only ever carry one date.
+    if (findDate(remainder)) continue
+
     const amounts = findAmounts(remainder)
     if (amounts.length === 0) continue
 
@@ -161,7 +175,7 @@ export async function parsePDF(file: File): Promise<Transaction[]> {
       description = description.replace(amt.raw, ' ')
     }
     description = description.replace(/\s+/g, ' ').trim()
-    if (!description) continue
+    if (!description || !/[a-z]/i.test(description)) continue
 
     let amount: number
     if (primaryAmount.explicitSign === 'negative') {
